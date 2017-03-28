@@ -3,6 +3,22 @@ patterns_2= [[(/  X . X  /),1],[(/ XX....../),0],[(/X..X.. ../),6], [(/......XX 
 patterns_3= [[(/OOO....../),'O'], [(/...OOO.../),'O'], [(/......OOO/),'O'], [(/O..O..O../),'O'], [(/.O..O..O./),'O'], [(/..O..O..O/),'O'], [(/O...O...O/),'O'], [(/..O.O.O../),'O'], [(/XXX....../),'X'], [(/...XXX.../),'X'], [(/......XXX/),'X'], [(/X..X..X../),'X'], [(/.X..X..X./),'X'], [(/..X..X..X/),'X'], [(/X...X...X/),'X'], [(/..X.X.X../),'X']]
 board= [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '];X= 'X';O= 'O';players= [X, O];curr_turn= X
 
+let gameLevel = 1;
+
+
+isValidNumber= function(numberEntered, minValidNumber, maxValidNumber){
+  let strEntered = numberEntered.toString().replace('\n','');
+  let validNumber = parseInt(strEntered);
+
+  if(isNaN(validNumber)){
+    return false;
+  }else if(validNumber < minValidNumber || validNumber > maxValidNumber){
+    return false;
+  }
+
+  return true;
+}
+
 comp= function(){
   x= get_pattern_1_move()
     if(x==-1){
@@ -70,14 +86,13 @@ play= function(){
   show()
     console.log("Enter [0-8]:")
     process.openStdin().on('data',function(res){
-      let strEntered = res.toString().replace('\n','')
-      let validNumber = parseInt(strEntered);
-      console.log(validNumber)
-      if(isNaN(validNumber) || validNumber < 0  ||  validNumber > 9){
+
+      if(!isValidNumber(res, 0, 8)){
         process.stdout.write('\033c'); //clear the console
-        console.log(`The character ${strEntered} is not valid`)
+        console.log(`The character introduced is not valid`)
         return play();
       }
+
       if(move(res, X)){
         if(winner()||board_filled()) {exit()} else {
           comp()
