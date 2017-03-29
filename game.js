@@ -20,11 +20,14 @@ isValidNumber = function(numberEntered, minValidNumber, maxValidNumber) {
 }
 
 levelChosen = function() {
+  const levelDifficulty = ["Easy", "Medium", "Hard"]
 	console.log("Please introduce a level of difficulty: ");
-	console.log("\t1 - Easy");
-	console.log("\t2 - Medium");
-	console.log("\t3 - Hard");
+	console.log("\t1 - ", levelDifficulty[0]);
+	console.log("\t2 - ", levelDifficulty[1]);
+	console.log("\t3 - ", levelDifficulty[2]);
+
 	process.openStdin().once('data', function(res) {
+    console.log("You has choosen " + levelDifficulty[parseInt(res.toString()) - 1] + " level")
 		if (!isValidNumber(res, 1, 3)) {
 			process.stdout.write('\033c'); //clear the console
 			console.log(`The character introduced is not valid`)
@@ -107,7 +110,6 @@ get_pattern_2_move = function() {
 	board_string = board.join('');
   const levels = [3,2,1];
   const setPatternLevel = levels[gameLevel - 1];
-    
 	for (i = 0; i < parseInt(patterns_2.length / setPatternLevel); i++) {
 		array = board_string.match(patterns_2[i][0])
 		if (array) {
