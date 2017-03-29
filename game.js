@@ -3,37 +3,109 @@ patterns_2= [[(/  X . X  /),1],[(/ XX....../),0],[(/X..X.. ../),6], [(/......XX 
 patterns_3= [[(/OOO....../),'O'], [(/...OOO.../),'O'], [(/......OOO/),'O'], [(/O..O..O../),'O'], [(/.O..O..O./),'O'], [(/..O..O..O/),'O'], [(/O...O...O/),'O'], [(/..O.O.O../),'O'], [(/XXX....../),'X'], [(/...XXX.../),'X'], [(/......XXX/),'X'], [(/X..X..X../),'X'], [(/.X..X..X./),'X'], [(/..X..X..X/),'X'], [(/X...X...X/),'X'], [(/..X.X.X../),'X']]
 board= [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '];X= 'X';O= 'O';players= [X, O];curr_turn= X
 
-// process.stdin.setRawMode(true);
-// process.stdin.on('readable', function () {
-//   var key = String(process.stdin.read());
-//   showArrEl(key);
-// });
-//
-// function showArrEl (key) {
-//   console.log(arr[key]);
-// }
-compVscomp= function(){
-  for (let i = 0; i < patterns_2.length; i++) {
-		array = board_string.match(patterns_2[i][0])
-		if (array) {
-			return patterns_2[i][1]
-		}
-	}
-	return -1
-}
-
-playComp= function (){
-  show();
-
-}
-
-let gameLevel = 1;
-
+const levelDifficulty = ["Easy", "Medium", "Hard"];
+const typeOfGame = ['Computer vs Computer', 'Human vs Human', 'Computer vs Human'];
 const colors = ["\x1b[32m", "\x1b[33m", "\x1b[31m", "\x1b[0m"];
+
+let gameLevel  = '';
+let userChose  = '';
+
+chooseFirstPlayer= function(){
+  console.log("Please choose the first player: ");
+	console.log(colors[0]+ "\t1 - ", X);
+	console.log(colors[1] +"\t2 - ", O);
+
+	process.openStdin().once('data', function(res) {
+    clearScreen();
+		if (!isValidNumber(res, 1, 2)) {
+			clearScreen() //clear the console
+			console.log(`The character introduced is not valid`)
+			return chooseFirstPlayer();
+		} else{
+		    curr_turn = (parseInt(res.toString()) === 1)? X : O;
+        play();
+	   }
+  });
+}
+
+chooseLetter= function(){
+  console.log("Select the first letter to play: ");
+
+	process.openStdin().once('data', function(res) {
+    clearScreen();
+		if (res.toString().trim().length !== 1) {
+			clearScreen() //clear the console
+			console.log(`The character introduced is not valid`)
+			return chooseLetter();
+		} else{
+		    X = res.toString().trim();
+        console.log("Select the second letter to play: ");
+        process.openStdin().once('data', function(res) {
+          clearScreen();
+      		if (res.toString().trim().length !== 1) {
+      			clearScreen() //clear the console
+      			console.log(`The character introduced is not valid`)
+      			return chooseLetter();
+      		} else{
+            O = res.toString().trim();
+            chooseFirstPlayer();
+      	   }
+        });
+	   }
+  });
+}
+
+gameChosen = function(){
+	console.log("What kind of game do you want to play: ");
+	console.log(colors[0]+ "\t1 - ", typeOfGame[0]);
+	console.log(colors[1] +"\t2 - ", typeOfGame[1]);
+	console.log(colors[2] +"\t3 - ", typeOfGame[2]+ colors[3]);
+  process.openStdin().once('data', function(res) {
+    clearScreen();
+
+		if (!isValidNumber(res, 1, 3)){
+			clearScreen() //clear the console
+			console.log(`The character introduced is not valid`)
+			return gameChosen();
+		}else {
+      userChose = parseInt(res.toString());
+      console.log("You has choosen " + typeOfGame[userChose - 1]);
+      if(userChose === 1){
+        playBots();
+      }else if(userChose === 3){
+        levelChosen();
+      }else{
+        chooseLetter();
+      }
+    }
+  });
+}
+
+levelChosen = function() {
+	console.log("Please introduce a level of difficulty: ");
+	console.log(colors[0]+ "\t1 - ", levelDifficulty[0]);
+	console.log(colors[1] +"\t2 - ", levelDifficulty[1]);
+	console.log(colors[2] +"\t3 - ", levelDifficulty[2]+ colors[3]);
+
+	process.openStdin().once('data', function(res) {
+    clearScreen();
+
+		if (!isValidNumber(res, 1, 3)) {
+			clearScreen() //clear the console
+			console.log(`The character introduced is not valid`)
+			return levelChosen();
+		} else{
+		    gameLevel = parseInt(res.toString());
+        console.log("You has choosen " + levelDifficulty[gameLevel - 1] + " level")
+        play();
+	   }
+  });
+}
 
 clearScreen= function(){
   process.stdout.write('\033c');
 }
+
 isValidNumber = function(numberEntered, minValidNumber, maxValidNumber) {
 	let strEntered = numberEntered.toString().replace('\n', '');
 	let validNumber = parseInt(strEntered);
@@ -47,26 +119,6 @@ isValidNumber = function(numberEntered, minValidNumber, maxValidNumber) {
 	return true;
 }
 
-levelChosen = function() {
-  const levelDifficulty = ["Easy", "Medium", "Hard"]
-	console.log("Please introduce a level of difficulty: ");
-	console.log(colors[0]+ "\t1 - ", levelDifficulty[0]);
-	console.log(colors[1] +"\t2 - ", levelDifficulty[1]);
-	console.log(colors[2] +"\t3 - ", levelDifficulty[2]+ colors[3]);
-
-	process.openStdin().once('data', function(res) {
-    clearScreen();
-    console.log("You has choosen " + levelDifficulty[parseInt(res.toString()) - 1] + " level")
-		if (!isValidNumber(res, 1, 3)) {
-			clearScreen() //clear the console
-			console.log(`The character introduced is not valid`)
-			return levelChosen();
-		} else{
-		    gameLevel = parseInt(res.toString());
-        play();
-	   }
-  });
-}
 
 comp = function() {
   x = get_pattern_1_move()
@@ -76,7 +128,7 @@ comp = function() {
   		x = get_move()
   	}
   }
-  move(x, O)
+  move(x, curr_turn)
 }
 
 move = function(pos, x) {
@@ -91,12 +143,10 @@ move = function(pos, x) {
 	return false
 }
 
-board_display= function() {
-	return colors[gameLevel -1]+'\t\t\t\t0  ' + colors[3]+board[0] + colors[gameLevel -1]+ '   |1  ' + colors[3]+board[1]+colors[gameLevel -1] + '   |2  ' + colors[3]+board[2]+ colors[gameLevel -1] + '\n\t\t\t\t=======+=======+=======\n\t\t\t\t3  ' + colors[3]+board[3]+colors[gameLevel -1] + '   |4  ' + colors[3]+board[4]+colors[gameLevel -1] + '   |5  ' + colors[3]+board[5]+colors[gameLevel -1] + '\n\t\t\t\t=======+=======+=======\n\t\t\t\t6  ' + colors[3]+board[6]+colors[gameLevel -1] + '   |7  ' + colors[3]+board[7]+colors[gameLevel -1] + '   |8  ' + colors[3]+board[8]
-}
-
 show = function() {
-	console.log(board_display())
+  let tmpGame = gameLevel || 1;
+  let board_display = colors[tmpGame -1]+'\t\t\t\t0  ' + colors[3]+board[0] + colors[tmpGame -1]+ '   |1  ' + colors[3]+board[1]+colors[tmpGame -1] + '   |2  ' + colors[3]+board[2]+ colors[tmpGame -1] + '\n\t\t\t\t=======+=======+=======\n\t\t\t\t3  ' + colors[3]+board[3]+colors[tmpGame -1] + '   |4  ' + colors[3]+board[4]+colors[tmpGame -1] + '   |5  ' + colors[3]+board[5]+colors[tmpGame -1] + '\n\t\t\t\t=======+=======+=======\n\t\t\t\t6  ' + colors[3]+board[6]+colors[tmpGame -1] + '   |7  ' + colors[3]+board[7]+colors[tmpGame -1] + '   |8  ' + colors[3]+board[8];
+	console.log(board_display)
 }
 
 board_filled = function() {
@@ -118,7 +168,7 @@ winner = function() {
   }
   if(the_winner){
     show();
-    (curr_turn === 'X')? console.log("You lose") : console.log("You win");
+    (curr_turn === 'X')? console.log("O wins") : console.log("X wins");
     return true
   }
   return false
@@ -155,31 +205,55 @@ get_move = function() {
 	return board.indexOf(' ')
 }
 
+getRandomMove= function(){
+  let x = 0;
+  do{
+    x = Math.floor(Math.random()*(9));
+  }while(!move(x, curr_turn));
+}
+
 exit = function() {
   process.exit()
 }
 
+playBots= function(){
+  do{
+    getRandomMove();
+  }while(!winner() && !board_filled());
+  exit();
+}
+
 play = function() {
-	show()
-	console.log("Enter [0-8]:")
-	process.openStdin().on('data', function(res) {
+
+	show();
+	console.log(curr_turn, "turn, enter a number [0,8]");
+  process.openStdin().on('data', function(res) {
 
 	  if (!isValidNumber(res, 0, 8)) {
 	     clearScreen() //clear the console
        console.log(`The character introduced is not valid`);
        return play();
 	  }
+
     clearScreen();
-		if (move(res, X)) {
+
+		if (move(res, curr_turn)) {
 			if (winner() || board_filled()) {
 				exit();
 			} else {
-				comp();
-				if (winner() || board_filled()) {
-					exit();
-				} else {
-					show();
-				}
+        if(typeOfGame[2] === typeOfGame[userChose - 1]){
+          comp();
+  				if (winner() || board_filled()) {
+  					exit();
+  				} else {
+  					show();
+            console.log(curr_turn, "turn, enter a number [0,8]");
+  				}
+        }else{
+          clearScreen();
+          show();
+          console.log(curr_turn, "turn, enter a number [0,8]");
+        }
 			}
 		}else{
       show();
@@ -188,4 +262,5 @@ play = function() {
 	});
 }
 
-levelChosen();
+
+gameChosen();
