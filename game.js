@@ -6,100 +6,152 @@ board= [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '];X= 'X';O= 'O';players= [X, 
 let gameLevel = 1;
 
 
-isValidNumber= function(numberEntered, minValidNumber, maxValidNumber){
-  let strEntered = numberEntered.toString().replace('\n','');
-  let validNumber = parseInt(strEntered);
+isValidNumber = function(numberEntered, minValidNumber, maxValidNumber) {
+	let strEntered = numberEntered.toString().replace('\n', '');
+	let validNumber = parseInt(strEntered);
 
-  if(isNaN(validNumber)){
-    return false;
-  }else if(validNumber < minValidNumber || validNumber > maxValidNumber){
-    return false;
+	if (isNaN(validNumber)) {
+		return false;
+	} else if (validNumber < minValidNumber || validNumber > maxValidNumber) {
+		return false;
+	}
+
+	return true;
+}
+
+levelChosen = function() {
+	console.log("Please introduce a level of difficulty: ");
+	console.log("\t1 - Easy");
+	console.log("\t2 - Medium");
+	console.log("\t3 - Hard");
+	process.openStdin().once('data', function(res) {
+		if (!isValidNumber(res, 1, 3)) {
+			process.stdout.write('\033c'); //clear the console
+			console.log(`The character introduced is not valid`)
+			return levelChosen();
+		} else{
+		    gameLevel = parseInt(res.toString());
+        play();
+	   }
+  });
+}
+
+comp = function() {
+  x = get_pattern_1_move()
+  if (x == -1) {
+  	x = get_pattern_2_move()
+  	if (x == -1) {
+  		x = get_move()
+  	}
   }
-
-  return true;
+  move(x, O)
 }
 
-comp= function(){
-  x= get_pattern_1_move()
-    if(x==-1){
-      x= get_pattern_2_move()
-        if(x==-1){x= get_move()}
-    }
-  move(x,O)
+move = function(pos, x) {
+	if (x != curr_turn) {
+		return false
+	}
+	if (+pos >= 0 && +pos <= 8 && !isNaN(+pos) && board[+pos] == ' ') {
+		board.splice(+pos, 1, x)
+		curr_turn = (x == X) ? O : X
+		return true
+	}
+	return false
 }
-move= function(pos,x){
-  if(x!=curr_turn){return false}
-  if(+pos>=0&&+pos<=8&&!isNaN(+pos)&&board[+pos]==' '){
-    board.splice(+pos,1,x)
-      curr_turn= (x==X)? O: X
-      return true
-  }
-  return false
+
+board_display = function() {
+	return ' ' + board[0] + ' |' + ' ' + board[1] + ' |' + ' ' + board[2] + '\n===+===+===\n' + ' ' + board[3] + ' |' + ' ' + board[4] + ' |' + ' ' + board[5] + '\n===+===+===\n' + ' ' + board[6] + ' |' + ' ' + board[7] + ' |' + ' ' + board[8]
 }
-board_display= function(){return ' '+board[0]+' |'+' '+board[1]+' |'+' '+board[2]+'\n===+===+===\n'+' '+board[3]+' |'+' '+board[4]+' |'+' '+board[5]+'\n===+===+===\n'+' '+board[6]+' |'+' '+board[7]+' |'+' '+board[8]}
-show= function(){console.log(board_display())}
-board_filled= function(){
-  x = get_move()
-    if(x==-1){
-      show()
-        console.log('Game over')
-        return true
-    }
-  return false
+
+show = function() {
+	console.log(board_display())
 }
-winner= function(){
+
+board_filled = function() {
+	x = get_move()
+	if (x == -1) {
+		show()
+		console.log('Game over')
+		return true
+	}
+	return false
+}
+
+winner = function() {
   board_string= board.join('')
-    the_winner= null
-    for(i=0;i<patterns_3.length;i++){
-      array= board_string.match(patterns_3[i][0])
-        if(array){the_winner= patterns_3[i][1]}
-    }
+  the_winner= null
+  for(i=0;i<patterns_3.length;i++){
+    array= board_string.match(patterns_3[i][0])
+    if(array){the_winner= patterns_3[i][1]}
+  }
   if(the_winner){
     show()
-      console.log('Game over')
-      return true
+    console.log('Game over')
+    return true
   }
   return false
 }
-get_pattern_1_move= function(){
-  board_string= board.join('')
-    for(i=0;i<patterns_1.length;i++){
-      array= board_string.match(patterns_1[i][0])
-        if(array){return patterns_1[i][1]}
-    }
-  return -1
-}
-get_pattern_2_move= function(){
-  board_string= board.join('')
-    for(i=0;i<patterns_2.length;i++){
-      array= board_string.match(patterns_2[i][0])
-        if(array){return patterns_2[i][1]}
-    }
-  return -1
-}
-get_move= function(){
-  if(board[4] == ' '){return 4}
-  return board.indexOf(' ')
-}
-exit= function(){process.exit()}
-play= function(){
-  show()
-    console.log("Enter [0-8]:")
-    process.openStdin().on('data',function(res){
 
-      if(!isValidNumber(res, 0, 8)){
-        process.stdout.write('\033c'); //clear the console
-        console.log(`The character introduced is not valid`)
-        return play();
-      }
-
-      if(move(res, X)){
-        if(winner()||board_filled()) {exit()} else {
-          comp()
-      if (winner()||board_filled()) {exit()} else {show()}
-        }
-      }
-    })
+get_pattern_1_move = function() {
+	board_string = board.join('')
+	for (i = 0; i < patterns_1.length; i++) {
+		array = board_string.match(patterns_1[i][0])
+		if (array) {
+			return patterns_1[i][1]
+		}
+	}
+	return -1
 }
 
-play()
+get_pattern_2_move = function() {
+	board_string = board.join('');
+  const levels = [3,2,1];
+  const setPatternLevel = levels[gameLevel - 1];
+    
+	for (i = 0; i < parseInt(patterns_2.length / setPatternLevel); i++) {
+		array = board_string.match(patterns_2[i][0])
+		if (array) {
+			return patterns_2[i][1]
+		}
+	}
+	return -1
+}
+
+get_move = function() {
+	if (board[4] == ' ') {
+		return 4
+	}
+	return board.indexOf(' ')
+}
+
+exit = function() {
+  process.exit()
+}
+
+play = function() {
+	show()
+	console.log("Enter [0-8]:")
+	process.openStdin().on('data', function(res) {
+
+	  if (!isValidNumber(res, 0, 8)) {
+	     process.stdout.write('\033c'); //clear the console
+       console.log(`The character introduced is not valid`);
+       return play();
+	  }
+
+		if (move(res, X)) {
+			if (winner() || board_filled()) {
+				exit();
+			} else {
+				comp();
+				if (winner() || board_filled()) {
+					exit();
+				} else {
+					show();
+				}
+			}
+		}
+	});
+}
+
+levelChosen();
