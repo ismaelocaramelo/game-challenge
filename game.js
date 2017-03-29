@@ -3,9 +3,37 @@ patterns_2= [[(/  X . X  /),1],[(/ XX....../),0],[(/X..X.. ../),6], [(/......XX 
 patterns_3= [[(/OOO....../),'O'], [(/...OOO.../),'O'], [(/......OOO/),'O'], [(/O..O..O../),'O'], [(/.O..O..O./),'O'], [(/..O..O..O/),'O'], [(/O...O...O/),'O'], [(/..O.O.O../),'O'], [(/XXX....../),'X'], [(/...XXX.../),'X'], [(/......XXX/),'X'], [(/X..X..X../),'X'], [(/.X..X..X./),'X'], [(/..X..X..X/),'X'], [(/X...X...X/),'X'], [(/..X.X.X../),'X']]
 board= [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '];X= 'X';O= 'O';players= [X, O];curr_turn= X
 
+// process.stdin.setRawMode(true);
+// process.stdin.on('readable', function () {
+//   var key = String(process.stdin.read());
+//   showArrEl(key);
+// });
+//
+// function showArrEl (key) {
+//   console.log(arr[key]);
+// }
+compVscomp= function(){
+  for (let i = 0; i < patterns_2.length; i++) {
+		array = board_string.match(patterns_2[i][0])
+		if (array) {
+			return patterns_2[i][1]
+		}
+	}
+	return -1
+}
+
+playComp= function (){
+  show();
+
+}
+
 let gameLevel = 1;
 
+const colors = ["\x1b[32m", "\x1b[33m", "\x1b[31m", "\x1b[0m"];
 
+clearScreen= function(){
+  process.stdout.write('\033c');
+}
 isValidNumber = function(numberEntered, minValidNumber, maxValidNumber) {
 	let strEntered = numberEntered.toString().replace('\n', '');
 	let validNumber = parseInt(strEntered);
@@ -22,14 +50,15 @@ isValidNumber = function(numberEntered, minValidNumber, maxValidNumber) {
 levelChosen = function() {
   const levelDifficulty = ["Easy", "Medium", "Hard"]
 	console.log("Please introduce a level of difficulty: ");
-	console.log("\t1 - ", levelDifficulty[0]);
-	console.log("\t2 - ", levelDifficulty[1]);
-	console.log("\t3 - ", levelDifficulty[2]);
+	console.log(colors[0]+ "\t1 - ", levelDifficulty[0]);
+	console.log(colors[1] +"\t2 - ", levelDifficulty[1]);
+	console.log(colors[2] +"\t3 - ", levelDifficulty[2]+ colors[3]);
 
 	process.openStdin().once('data', function(res) {
+    clearScreen();
     console.log("You has choosen " + levelDifficulty[parseInt(res.toString()) - 1] + " level")
 		if (!isValidNumber(res, 1, 3)) {
-			process.stdout.write('\033c'); //clear the console
+			clearScreen() //clear the console
 			console.log(`The character introduced is not valid`)
 			return levelChosen();
 		} else{
@@ -62,8 +91,8 @@ move = function(pos, x) {
 	return false
 }
 
-board_display = function() {
-	return ' ' + board[0] + ' |' + ' ' + board[1] + ' |' + ' ' + board[2] + '\n===+===+===\n' + ' ' + board[3] + ' |' + ' ' + board[4] + ' |' + ' ' + board[5] + '\n===+===+===\n' + ' ' + board[6] + ' |' + ' ' + board[7] + ' |' + ' ' + board[8]
+board_display= function() {
+	return colors[gameLevel -1]+'\t\t\t\t0  ' + colors[3]+board[0] + colors[gameLevel -1]+ '   |1  ' + colors[3]+board[1]+colors[gameLevel -1] + '   |2  ' + colors[3]+board[2]+ colors[gameLevel -1] + '\n\t\t\t\t=======+=======+=======\n\t\t\t\t3  ' + colors[3]+board[3]+colors[gameLevel -1] + '   |4  ' + colors[3]+board[4]+colors[gameLevel -1] + '   |5  ' + colors[3]+board[5]+colors[gameLevel -1] + '\n\t\t\t\t=======+=======+=======\n\t\t\t\t6  ' + colors[3]+board[6]+colors[gameLevel -1] + '   |7  ' + colors[3]+board[7]+colors[gameLevel -1] + '   |8  ' + colors[3]+board[8]
 }
 
 show = function() {
@@ -74,7 +103,7 @@ board_filled = function() {
 	x = get_move()
 	if (x == -1) {
 		show()
-		console.log('Game over')
+		console.log('There is no availables cells. Game over');
 		return true
 	}
 	return false
@@ -88,8 +117,8 @@ winner = function() {
     if(array){the_winner= patterns_3[i][1]}
   }
   if(the_winner){
-    show()
-    console.log('Game over')
+    show();
+    (curr_turn === 'X')? console.log("You lose") : console.log("You win");
     return true
   }
   return false
@@ -136,11 +165,11 @@ play = function() {
 	process.openStdin().on('data', function(res) {
 
 	  if (!isValidNumber(res, 0, 8)) {
-	     process.stdout.write('\033c'); //clear the console
+	     clearScreen() //clear the console
        console.log(`The character introduced is not valid`);
        return play();
 	  }
-
+    clearScreen();
 		if (move(res, X)) {
 			if (winner() || board_filled()) {
 				exit();
@@ -152,7 +181,10 @@ play = function() {
 					show();
 				}
 			}
-		}
+		}else{
+      show();
+      console.log("The cell is unavailable, please do enter another cell number [0-8]: ");
+    }
 	});
 }
 
